@@ -27,11 +27,29 @@ let
 
   configFile = account: {
     name = "${account.maildir.absPath}/.gmailieer.json";
-    value.source = settingsFormat.generate "lieer-${account.address}.json"
-      ({ account = account.address; } // account.lieer.settings);
+    value.source =
+      let acc = account.address or account.lieer.settings.account;
+      in settingsFormat.generate "lieer-${acc}.json"
+      ({ account = acc; } // account.lieer.settings);
   };
 
   settingsOpts = {
+    account = mkOption {
+      type = types.nullOr (types.oneOf [
+        (types.strMatching ".*@.*")
+        (types.enum ["me"])
+      ]);
+      default = null;
+      description = ''
+        Override the account used to access email. Can be a valid email with
+        access to the account. Can also be "me" when authorizing API access by a
+        delegated service account.
+        </para><para>
+        If left null, this value will come from
+        <literal>accounts.email.accounts.&lt;name&gt;.address</literal>.
+      '';
+    };
+
     drop_non_existing_label = mkOption {
       type = types.bool;
       default = false;
